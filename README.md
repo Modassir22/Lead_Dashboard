@@ -55,3 +55,28 @@ You can register a new admin account right from the login page and start managin
 - **Strict TypeScript:** Strongly typed codebase to prevent runtime errors.
 - **Search & Filters:** Easily find leads by name/email or filter by source/status.
 - **Export Data:** Download your leads as a CSV file in one click.
+
+---
+
+## Deployment Guide
+
+### 🚀 Deploying Frontend on Vercel
+1. Login to [Vercel](https://vercel.com) and click **Add New Project**.
+2. Import your GitHub repository.
+3. In the project configuration:
+   - Set **Root Directory** to `frontend`.
+   - Framework Preset should auto-detect as **Vite**.
+4. Open the **Environment Variables** section and add:
+   - `VITE_API` = `<your-railway-backend-url>/api` (e.g., `https://your-backend.up.railway.app/api`)
+5. Click **Deploy**. *(Note: A `vercel.json` is already included to fix page refresh issues in React Router).*
+
+### 🚂 Deploying Backend on Railway
+1. Login to [Railway](https://railway.app) and click **New Project** -> **Deploy from GitHub repo**.
+2. Select your repository.
+3. Once the project is created, go to the Service **Settings**.
+4. Under **Build**, change the **Root Directory** from `/` to `/backend`.
+5. Under **Variables**, add your production secrets:
+   - `MONGO_URI` = `your_mongodb_atlas_url`
+   - `JWT_SECRET` = `any_secure_random_string`
+   - `PORT` = `8080`
+6. Railway will automatically install dependencies and run `npm start` to launch your backend!
