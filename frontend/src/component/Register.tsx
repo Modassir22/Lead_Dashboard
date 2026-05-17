@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
   const { login } = useAuth();
+  const navigate = useNavigate();
   
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -25,7 +27,7 @@ const Register = () => {
       
       if (res.ok) {
         alert("Registration Successful! Please login.");
-        window.location.href = "/";
+        navigate("/login");
       } else {
         alert(data.message || "Registration failed");
       }
@@ -108,7 +110,7 @@ const Register = () => {
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Already have an account?{' '}
             <button
-              onClick={() => window.location.href = "/"}
+              onClick={() => navigate("/login")}
               className="text-red-600 hover:text-red-500 font-medium transition-colors"
             >
               Sign In

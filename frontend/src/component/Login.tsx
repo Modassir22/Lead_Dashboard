@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const { login } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -73,7 +75,7 @@ const Login = () => {
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Don't have an account?{' '}
             <button
-              onClick={() => window.location.href = "/register"}
+              onClick={() => navigate('/register')}
               className="text-red-600 hover:text-red-500 font-medium transition-colors"
             >
               Sign Up
