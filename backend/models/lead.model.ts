@@ -6,6 +6,7 @@ export interface ILead extends Document {
     status: 'new' | 'contacted' | 'qualified' | 'lost';
     source: 'website' | 'instagram' | 'referral';
     createdAt: Date;
+    createdBy: mongoose.Types.ObjectId;
 }
 
 const leadSchema = new Schema<ILead>({
@@ -29,6 +30,11 @@ const leadSchema = new Schema<ILead>({
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     }
 });
 

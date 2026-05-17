@@ -1,7 +1,7 @@
-import express from "express";
 import { Lead } from "../models/lead.model.js";
 const createLead = async (req, res) => {
     const { name, email, status, source } = req.body;
+    const userId = req.user?.id || req.user?._id;
     if (!name || !email || !status || !source) {
         res.status(400).json({ message: "All fields are required" });
         return;
@@ -16,7 +16,8 @@ const createLead = async (req, res) => {
             name,
             email,
             status,
-            source
+            source,
+            createdBy: userId
         });
         await lead.save();
         res.status(200).json({ message: "lead Created Successfully" });
@@ -37,6 +38,13 @@ const updateLead = async (req, res) => {
         if (!lead) {
             res.status(404).json({ message: "Lead doesn't exist" });
             return;
+        }
+        if (req.user && req.user.role !== 'admin') {
+            const userId = (req.user.id || req.user._id).toString();
+            if (!lead.createdBy || lead.createdBy.toString() !== userId) {
+                res.status(403).json({ message: "Forbidden - You can only update your own leads" });
+                return;
+            }
         }
         const updatedLead = await Lead.findByIdAndUpdate(id, {
             name,
@@ -73,6 +81,13 @@ const getLead = async (req, res) => {
             res.status(404).json({ message: "Lead doesn't exists" });
             return;
         }
+        if (req.user && req.user.role !== 'admin') {
+            const userId = (req.user.id || req.user._id).toString();
+            if (!lead.createdBy || lead.createdBy.toString() !== userId) {
+                res.status(403).json({ message: "Forbidden - You can only view your own leads" });
+                return;
+            }
+        }
         res.status(200).json({ message: "Lead Found SuccessFully", lead });
     }
     catch (e) {
@@ -86,6 +101,10 @@ const getAllLeads = async (req, res) => {
         const skip = (page - 1) * limit;
         const { search, status, source, sort, exportData } = req.query;
         let query = {};
+        if (req.user && req.user.role !== 'admin') {
+            const userId = req.user.id || req.user._id;
+            query.createdBy = userId;
+        }
         if (status) {
             query.status = status;
         }

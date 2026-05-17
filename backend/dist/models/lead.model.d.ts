@@ -5,6 +5,7 @@ export interface ILead extends Document {
     status: 'new' | 'contacted' | 'qualified' | 'lost';
     source: 'website' | 'instagram' | 'referral';
     createdAt: Date;
+    createdBy: mongoose.Types.ObjectId;
 }
 declare const Lead: mongoose.Model<ILead, {}, {}, {}, mongoose.Document<unknown, {}, ILead, {}, mongoose.DefaultSchemaOptions> & ILead & Required<{
     _id: mongoose.Types.ObjectId;

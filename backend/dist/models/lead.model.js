@@ -20,6 +20,11 @@ const leadSchema = new Schema({
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     }
 });
 const Lead = mongoose.model("Lead", leadSchema);

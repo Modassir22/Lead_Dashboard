@@ -1,9 +1,10 @@
-import type { Request, Response } from "express";
-import express from "express";
+import type { Response } from "express";
 import { Lead } from "../models/lead.model.js";
+import type { AuthRequest } from "../middleware/auth.middleware.js";
 
-const createLead = async (req: Request, res: Response): Promise<void> => {
+const createLead = async (req: AuthRequest, res: Response): Promise<void> => {
     const { name, email, status, source } = req.body;
+    const userId = req.user?.id || req.user?._id;
     
     if (!name || !email || !status || !source) {
         res.status(400).json({ message: "All fields are required" });
@@ -21,7 +22,8 @@ const createLead = async (req: Request, res: Response): Promise<void> => {
             name,
             email,
             status,
-            source
+            source,
+            createdBy: userId
         });
 
         await lead.save();
@@ -31,7 +33,7 @@ const createLead = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-const updateLead = async (req: Request, res: Response): Promise<void> => {
+const updateLead = async (req: AuthRequest, res: Response): Promise<void> => {
     const { id } = req.params;
     const { name, email, status, source } = req.body;
     
@@ -45,6 +47,14 @@ const updateLead = async (req: Request, res: Response): Promise<void> => {
         if (!lead) {
             res.status(404).json({ message: "Lead doesn't exist" });
             return;
+        }
+
+        if (req.user && req.user.role !== 'admin') {
+            const userId = (req.user.id || req.user._id).toString();
+            if (!lead.createdBy || lead.createdBy.toString() !== userId) {
+                res.status(403).json({ message: "Forbidden - You can only update your own leads" });
+                return;
+            }
         }
 
         const updatedLead = await Lead.findByIdAndUpdate(
@@ -62,7 +72,7 @@ const updateLead = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-const deleteLead = async (req: Request, res: Response): Promise<void> => {
+const deleteLead = async (req: AuthRequest, res: Response): Promise<void> => {
     const { id } = req.params;
     try {
         const lead = await Lead.findById(id);
@@ -78,7 +88,7 @@ const deleteLead = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-const getLead = async (req: Request, res: Response): Promise<void> => {
+const getLead = async (req: AuthRequest, res: Response): Promise<void> => {
     const { id } = req.params;
     try {
         const lead = await Lead.findById(id);
@@ -86,13 +96,22 @@ const getLead = async (req: Request, res: Response): Promise<void> => {
             res.status(404).json({ message: "Lead doesn't exists" });
             return;
         }
+        
+        if (req.user && req.user.role !== 'admin') {
+            const userId = (req.user.id || req.user._id).toString();
+            if (!lead.createdBy || lead.createdBy.toString() !== userId) {
+                res.status(403).json({ message: "Forbidden - You can only view your own leads" });
+                return;
+            }
+        }
+        
         res.status(200).json({ message: "Lead Found SuccessFully", lead });
     } catch (e) {
         res.status(500).json({ message: "Error while fetching lead" });
     }
 };
 
-const getAllLeads = async (req: Request, res: Response): Promise<void> => {
+const getAllLeads = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
@@ -101,6 +120,11 @@ const getAllLeads = async (req: Request, res: Response): Promise<void> => {
         const { search, status, source, sort, exportData } = req.query;
 
         let query: any = {};
+
+        if (req.user && req.user.role !== 'admin') {
+            const userId = req.user.id || req.user._id;
+            query.createdBy = userId;
+        }
 
         if (status) {
             query.status = status;
